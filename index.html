@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atomic Design Card Component</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+    
+    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
+    
+    <style>
+        /* Optional: Basic styling to ensure content fits the screen */
+        body {
+            background-color: #1f2937; /* Matches a dark theme background */
+        }
+    </style>
+</head>
+<body class="bg-base-300 min-h-screen">
+
+    <div id="dashboard-container" class="p-8">
+        </div>
+
+    <script id="card-header-template" type="text/x-handlebars-template">
+        <div class="card-title justify-between">
+            <p class="text-xl font-bold text-neutral-content">
+                {{title}}
+            </p>
+            {{#if status}}
+                <div class="badge badge-outline {{statusClass}}">
+                    {{status}}
+                </div>
+            {{/if}}
+        </div>
+    </script>
+    
+    <script id="card-body-template" type="text/x-handlebars-template">
+        <div class="py-4">
+            <p class="text-4xl font-extrabold text-neutral-content mb-2">
+                {{metricValue}}
+            </p>
+            <p class="text-sm text-neutral-content opacity-90">
+                {{summary}}
+            </p>
+        </div>
+    </script>
+
+    <script id="dashboard-card-template" type="text/x-handlebars-template">
+        <div class="card w-full shadow-xl {{bgColor}}">
+            <div class="card-body">
+                {{> card-header title=title status=status statusClass=statusClass}}
+
+                {{> card-body metricValue=metricValue summary=summary}}
+
+                {{#if hasAction}}
+                    <div class="card-actions justify-end mt-4">
+                        <button class="btn btn-sm btn-outline btn-secondary">
+                            View Details
+                        </button>
+                    </div>
+                {{/if}}
+            </div>
+        </div>
+    </script>
+
+    <script id="dashboard-layout-template" type="text/x-handlebars-template">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {{#each widgets}}
+                {{> dashboard-card
+                    title=this.title
+                    status=this.status
+                    statusClass=this.statusClass
+                    metricValue=this.metricValue
+                    summary=this.summary
+                    bgColor=this.bgColor
+                    hasAction=this.hasAction
+                }}
+            {{/each}}
+        </div>
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Data for the widgets, demonstrating reuse with different content and styles
+            const dashboardData = {
+                widgets: [
+                    {
+                        title: "Total Sales",
+                        status: "30 Days",
+                        statusClass: "badge-success",
+                        metricValue: "$15,200",
+                        summary: "2.5% increase from last month.",
+                        bgColor: "bg-primary text-primary-content", // Apply background color and ensure text contrasts
+                        hasAction: true
+                    },
+                    {
+                        title: "New Users",
+                        status: "Live",
+                        statusClass: "badge-error",
+                        metricValue: "4,512",
+                        summary: "Goal is 5,000 this week.",
+                        bgColor: "bg-info text-info-content",
+                        hasAction: false
+                    },
+                    {
+                        title: "Support Tickets",
+                        status: "Open",
+                        statusClass: "badge-warning",
+                        metricValue: "42",
+                        summary: "Action required to close tickets.",
+                        bgColor: "bg-neutral text-neutral-content",
+                        hasAction: true
+                    }
+                ]
+            };
+
+            // --- Handlebars Compilation and Registration ---
+            
+            // 1. Compile all templates
+            const headerTemplate = Handlebars.compile(document.getElementById('card-header-template').innerHTML);
+            const bodyTemplate = Handlebars.compile(document.getElementById('card-body-template').innerHTML);
+            const cardTemplate = Handlebars.compile(document.getElementById('dashboard-card-template').innerHTML);
+            const layoutTemplate = Handlebars.compile(document.getElementById('dashboard-layout-template').innerHTML);
+
+            // 2. Register Molecules and Organisms as Handlebars Partials for reuse
+            Handlebars.registerPartial('card-header', headerTemplate);
+            Handlebars.registerPartial('card-body', bodyTemplate);
+            Handlebars.registerPartial('dashboard-card', cardTemplate);
+            
+            // 3. Render the main Dashboard Layout Template
+            const html = layoutTemplate(dashboardData);
+            
+            // 4. Inject the final HTML into the DOM
+            document.getElementById('dashboard-container').innerHTML = html;
+        });
+    </script>
+</body>
+</html>
